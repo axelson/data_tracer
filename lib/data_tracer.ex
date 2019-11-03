@@ -14,7 +14,7 @@ defmodule DataTracer do
   end
 
   def init(_opts) do
-    IO.puts "DataTracer starting!"
+    Logger.debug("DataTracer starting!")
     table = :ets.new(@table_name, [:set, :protected, :named_table])
     {:ok, table}
   end
