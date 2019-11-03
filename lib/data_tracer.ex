@@ -35,8 +35,8 @@ defmodule DataTracer do
     entry
   end
 
-  def store(value) do
-    key = NaiveDateTime.utc_now()
+  def store(value, opts \\ []) do
+    key = Keyword.get(opts, :label, NaiveDateTime.utc_now())
     GenServer.call(__MODULE__, {:store_key, key, value})
     value
   end
