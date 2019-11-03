@@ -8,6 +8,7 @@ defmodule DataTracer.Server do
     GenServer.start_link(__MODULE__, opts, name: name)
   end
 
+  @impl GenServer
   def init(_opts) do
     Logger.debug("DataTracer starting!")
     table = :ets.new(@table_name, [:set, :protected, :named_table])
@@ -53,6 +54,7 @@ defmodule DataTracer.Server do
     Process.exit(pid, :kill)
   end
 
+  @impl GenServer
   def handle_call({:store_key, key, value}, _from, table) do
     Logger.warn("Storing #{inspect(key)} => #{inspect(value, pretty: true)}")
     :ets.insert(table, {key, value})
