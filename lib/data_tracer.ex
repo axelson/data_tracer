@@ -38,10 +38,12 @@ defmodule DataTracer do
   def store(value) do
     key = NaiveDateTime.utc_now()
     GenServer.call(__MODULE__, {:store_key, key, value})
+    value
   end
 
   def store_key(key, value) do
     GenServer.call(__MODULE__, {:store_key, key, value})
+    value
   end
 
   def lookup(key) do
