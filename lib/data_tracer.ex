@@ -57,7 +57,7 @@ defmodule DataTracer do
   end
 
   def handle_call({:store_key, key, value}, _from, table) do
-    Logger.warn("Storing #{inspect key} => #{inspect value, pretty: true}")
+    Logger.warn("Storing #{inspect(key)} => #{inspect(value, pretty: true)}")
     :ets.insert(table, {key, value})
     {:reply, :ok, table}
   end
