@@ -5,10 +5,17 @@ defmodule DataTracer do
   """
 
   defdelegate all, to: DataTracer.Server
+  defdelegate all(opts), to: DataTracer.Server
+
   defdelegate last, to: DataTracer.Server
+  defdelegate last(opts), to: DataTracer.Server
+
   defdelegate store(value), to: DataTracer.Server
   defdelegate store(value, opts), to: DataTracer.Server
-  defdelegate store_key(key, value), to: DataTracer.Server
+
   defdelegate lookup(key), to: DataTracer.Server
+  defdelegate lookup(key, opts), to: DataTracer.Server
+
   defdelegate clear, to: DataTracer.Server
+  defdelegate clear(opts), to: DataTracer.Server
 end

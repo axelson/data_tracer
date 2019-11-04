@@ -5,7 +5,7 @@ defmodule DataTracer.Application do
 
   def start(_type, _args) do
     children = [
-      {DataTracer, []}
+      {DataTracer.Server, []}
     ]
 
     opts = [strategy: :one_for_one, name: DataTracer.Supervisor]

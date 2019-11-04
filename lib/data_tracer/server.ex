@@ -4,20 +4,27 @@ defmodule DataTracer.Server do
 
   @table_name :data_tracer
 
+  defmodule State do
+    defstruct [:table_name, :table]
+  end
+
   def start_link(opts, name \\ __MODULE__) do
     GenServer.start_link(__MODULE__, opts, name: name)
   end
 
   @impl GenServer
-  def init(_opts) do
+  def init(opts) do
     Logger.debug("DataTracer starting!")
-    table = :ets.new(@table_name, [:set, :protected, :named_table])
-    {:ok, table}
+    table_name = Keyword.get(opts, :table, @table_name)
+    table = new(table_name)
+    {:ok, %State{table_name: table_name, table: table}}
   end
 
-  def all do
-    :ets.match(@table_name, {:"$1", :"$2"})
-    |> Enum.sort(fn [a, _], [b, _] ->
+  def all(opts \\ []) do
+    table_name = Keyword.get(opts, :table, @table_name)
+
+    :ets.match(table_name, {:"$1", :"$2", :"$3"})
+    |> Enum.sort(fn [_, a, _], [_, b, _] ->
       case NaiveDateTime.compare(a, b) do
         :lt -> false
         :eq -> true
@@ -26,38 +33,59 @@ defmodule DataTracer.Server do
     end)
   end
 
-  def last do
-    [_time, entry] = all() |> Enum.at(0)
+  def last(opts \\ []) do
+    [_time, entry] = all(opts) |> Enum.at(0)
     entry
   end
 
   def store(value, opts \\ []) do
-    key = Keyword.get(opts, :label, NaiveDateTime.utc_now())
-    GenServer.call(__MODULE__, {:store_key, key, value})
+    time = Keyword.get(opts, :time, NaiveDateTime.utc_now())
+    key = Keyword.get(opts, :key)
+    tracer = Keyword.get(opts, :tracer)
+
+    GenServer.call(tracer, {:store_key, key, time, value})
     value
   end
 
-  def store_key(key, value) do
-    GenServer.call(__MODULE__, {:store_key, key, value})
-    value
-  end
+  def lookup(key, opts \\ []) do
+    table_name = Keyword.get(opts, :table, @table_name)
 
-  def lookup(key) do
-    case :ets.lookup(@table_name, key) do
+    :ets.lookup(table_name, key)
+    |> Enum.map(fn {_, _, val} -> val end)
+    |> case do
       [] -> nil
-      [{^key, val}] -> val
+      val -> val
     end
   end
 
-  def clear do
-    pid = Process.whereis(__MODULE__)
-    Process.exit(pid, :kill)
+  def clear(opts \\ []) do
+    tracer = Keyword.get(opts, :tracer)
+
+    GenServer.call(tracer, :clear)
   end
 
   @impl GenServer
-  def handle_call({:store_key, key, value}, _from, table) do
-    Logger.warn("Storing #{inspect(key)} => #{inspect(value, pretty: true)}")
-    :ets.insert(table, {key, value})
-    {:reply, :ok, table}
+  def handle_call({:store_key, key, time, value}, _from, state) do
+    %State{table: table} = state
+
+    if key do
+      Logger.warn("Storing #{inspect(key)}:#{inspect(time)} => #{inspect(value, pretty: true)}")
+    else
+      Logger.warn("Storing #{inspect(time)} => #{inspect(value, pretty: true)}")
+    end
+
+    :ets.insert(table, {key, time, value})
+    {:reply, :ok, state}
+  end
+
+  def handle_call(:clear, _from, state) do
+    %State{table_name: table_name} = state
+    :ets.delete(table_name)
+    table = new(table_name)
+    {:reply, :ok, %State{state | table: table}}
+  end
+
+  defp new(table_name) do
+    :ets.new(table_name, [:duplicate_bag, :protected, :named_table])
   end
 end
