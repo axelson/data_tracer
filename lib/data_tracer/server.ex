@@ -4,10 +4,19 @@ defmodule DataTracer.Server do
 
   @table_name :data_tracer
 
+  @table_doc "`:table` - The ETS table to read from (optional, only needed if
+  the table name was customized when the DataTracer was started)"
+
+  @tracer_doc "`:tracer` - The DataTracer instance to store the value in"
+
   defmodule State do
     defstruct [:table_name, :table]
   end
 
+  @doc """
+  Options:
+  * `:table` - The ETS table to use for writing (optional)
+  """
   def start_link(opts, name \\ __MODULE__) do
     GenServer.start_link(__MODULE__, opts, name: name)
   end
@@ -20,6 +29,12 @@ defmodule DataTracer.Server do
     {:ok, %State{table_name: table_name, table: table}}
   end
 
+  @doc """
+  Retrieve all entries that have been stored
+
+  Options:
+  * #{@table_doc}
+  """
   def all(opts \\ []) do
     table_name = Keyword.get(opts, :table, @table_name)
 
@@ -33,20 +48,39 @@ defmodule DataTracer.Server do
     end)
   end
 
+  @doc """
+  Retrieve the last entry that was retrieved
+
+  See `all/1` for options
+  """
   def last(opts \\ []) do
     [_time, entry] = all(opts) |> Enum.at(0)
     entry
   end
 
+  @doc """
+  Store the given value in the DataTracer
+
+  Options:
+  * `:key` - The key that the value is stored under
+  * `:time` - The timestamp to associate with the value (primarily used for sorting)
+  * #{@tracer_doc}
+  """
   def store(value, opts \\ []) do
-    time = Keyword.get(opts, :time, NaiveDateTime.utc_now())
     key = Keyword.get(opts, :key)
+    time = Keyword.get(opts, :time, NaiveDateTime.utc_now())
     tracer = Keyword.get(opts, :tracer)
 
     GenServer.call(tracer, {:store_key, key, time, value})
     value
   end
 
+  @doc """
+  Retrieve all values that have been stored under the key in the DataTracer
+
+  Options:
+  * #{@table_doc}
+  """
   def lookup(key, opts \\ []) do
     table_name = Keyword.get(opts, :table, @table_name)
 
@@ -58,6 +92,12 @@ defmodule DataTracer.Server do
     end
   end
 
+  @doc """
+  Clear the DataTracer
+
+  Options:
+  * #{@tracer_doc}
+  """
   def clear(opts \\ []) do
     tracer = Keyword.get(opts, :tracer)
 
