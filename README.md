@@ -21,4 +21,5 @@ be found at [https://hexdocs.pm/data_tracer](https://hexdocs.pm/data_tracer).
 
 
 TODO:
+- [ ] Don't unecessarily send logs through the server (since we're using ETS we can write directly)
 - [ ] Allow storing only new values (or only values that differ from the latest value)
