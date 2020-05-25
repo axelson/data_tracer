@@ -69,7 +69,7 @@ defmodule DataTracer.Server do
   def store(value, opts \\ []) do
     key = Keyword.get(opts, :key)
     time = Keyword.get(opts, :time, NaiveDateTime.utc_now())
-    tracer = Keyword.get(opts, :tracer)
+    tracer = Keyword.get(opts, :tracer, __MODULE__)
 
     GenServer.call(tracer, {:store_key, key, time, value})
     value
@@ -99,7 +99,7 @@ defmodule DataTracer.Server do
   * #{@tracer_doc}
   """
   def clear(opts \\ []) do
-    tracer = Keyword.get(opts, :tracer)
+    tracer = Keyword.get(opts, :tracer, __MODULE__)
 
     GenServer.call(tracer, :clear)
   end
