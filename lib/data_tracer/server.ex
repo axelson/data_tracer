@@ -51,16 +51,22 @@ defmodule DataTracer.Server do
   def store(value, opts \\ []) do
     key = Keyword.get(opts, :key)
     time = Keyword.get(opts, :time, NaiveDateTime.utc_now())
-    tracer = Keyword.get(opts, :tracer, __MODULE__)
+    table = Keyword.get(opts, :table, @table_name)
 
-    GenServer.call(tracer, {:store_key, key, time, value})
-    value
+    if key do
+      Logger.warn("Storing #{inspect(key)}:#{inspect(time)} => #{inspect(value, pretty: true)}")
+    else
+      Logger.warn("Storing #{inspect(time)} => #{inspect(value, pretty: true)}")
+    end
+
+    :ets.insert(table, {key, time, value})
+    :ok
   end
 
   def lookup(key, opts \\ []) do
-    table_name = Keyword.get(opts, :table, @table_name)
+    table = Keyword.get(opts, :table, @table_name)
 
-    :ets.lookup(table_name, key)
+    :ets.lookup(table, key)
     |> Enum.map(fn {_, _, val} -> val end)
     |> case do
       [] -> nil
@@ -68,26 +74,11 @@ defmodule DataTracer.Server do
     end
   end
 
-  def clear(opts \\ []) do
-    tracer = Keyword.get(opts, :tracer, __MODULE__)
-
-    GenServer.call(tracer, :clear)
+  def clear(name_or_pid \\ __MODULE__, _opts \\ []) do
+    GenServer.call(name_or_pid, :clear)
   end
 
   @impl GenServer
-  def handle_call({:store_key, key, timestamp, value}, _from, state) do
-    %State{table: table} = state
-
-    if key do
-      Logger.warn("Storing #{inspect(key)}:#{inspect(timestamp)} => #{inspect(value, pretty: true)}")
-    else
-      Logger.warn("Storing #{inspect(timestamp)} => #{inspect(value, pretty: true)}")
-    end
-
-    :ets.insert(table, {key, timestamp, value})
-    {:reply, :ok, state}
-  end
-
   def handle_call(:clear, _from, state) do
     %State{table_name: table_name} = state
     :ets.delete(table_name)
@@ -96,6 +87,6 @@ defmodule DataTracer.Server do
   end
 
   defp new(table_name) do
-    :ets.new(table_name, [:duplicate_bag, :protected, :named_table])
+    :ets.new(table_name, [:duplicate_bag, :public, :named_table])
   end
 end
