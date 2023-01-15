@@ -21,10 +21,28 @@ defmodule DataTracer do
   @doc """
   Retrieve the last entry that was stored
 
-  See `all/1` for options
+  See `last/1` for options
   """
   defdelegate last, to: DataTracer.Server
   defdelegate last(opts), to: DataTracer.Server
+
+  @doc """
+  Store the given value in the DataTracer uniquely
+
+  The first instance of the found value is replaced with the new value
+
+  See `store_uniq/2` for options
+  """
+  defdelegate store_uniq(value), to: DataTracer.Server
+
+  @doc """
+  Options:
+  * `:key` - The key that the value is stored under. Defaults to `nil`
+  * `:time` - The timestamp to associate with the value (primarily used for
+    sorting). Defaults to the current time.
+  * #{@tracer_doc}
+  """
+  defdelegate store_uniq(value, opts), to: DataTracer.Server
 
   @doc """
   Store the given value in the DataTracer
@@ -46,6 +64,11 @@ defmodule DataTracer do
 
   @doc """
   Retrieve all values that have been stored under the key in the DataTracer
+
+  Returns the values in desc order by timestamp. This means that the first value
+  returned is the last value that was stored for the given key.
+
+  Use `nil` as the key to retrieve values that were stored without a specific key.
 
   Options:
   * #{@table_doc}

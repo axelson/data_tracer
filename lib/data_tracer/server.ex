@@ -1,6 +1,7 @@
 defmodule DataTracer.Server do
   use GenServer
   require Logger
+  require Matcha.Table.ETS
 
   @moduledoc """
   Reads and writes the traced data to ETS
@@ -31,63 +32,72 @@ defmodule DataTracer.Server do
   end
 
   def all(opts \\ []) do
-    table_name = Keyword.get(opts, :table, @table_name)
+    table = Keyword.get(opts, :table, @table_name)
 
-    :ets.match(table_name, {:"$1", :"$2", :"$3"})
-    |> Enum.sort(fn [_, a, _], [_, b, _] ->
-      case NaiveDateTime.compare(a, b) do
-        :lt -> false
-        :eq -> true
-        :gt -> true
-      end
-    end)
+    Matcha.Table.ETS.select table, :reverse do
+      {{time, _dup_number, key}, value} -> {time, key, value}
+    end
   end
 
   def last(opts \\ []) do
-    [_key, _timestamp, value] = all(opts) |> List.first()
-    value
+    table = Keyword.get(opts, :table, @table_name)
+
+    case :ets.last(table) do
+      :"$end_of_table" ->
+        :data_tracer_table_is_empty
+
+      key ->
+        [{{_time, _dup_number, _key}, value}] = :ets.lookup(table, key)
+        value
+    end
   end
 
   def store(value, opts \\ []) do
     key = Keyword.get(opts, :key)
-    time = Keyword.get(opts, :time, NaiveDateTime.utc_now())
-    tracer = Keyword.get(opts, :tracer, __MODULE__)
+    time = Keyword.get(opts, :time, :os.system_time(:millisecond))
+    table = Keyword.get(opts, :table, @table_name)
 
-    GenServer.call(tracer, {:store_key, key, time, value})
-    value
+    if key do
+      Logger.warn("Storing #{inspect(key)}:#{inspect(time)} => #{inspect(value, pretty: true)}")
+    else
+      Logger.warn("Storing #{inspect(time)} => #{inspect(value, pretty: true)}")
+    end
+
+    store_value(table, time, key, value)
+  end
+
+  def store_uniq(value, opts \\ []) do
+    key = Keyword.get(opts, :key)
+    time = Keyword.get(opts, :time)
+    table = Keyword.get(opts, :table)
+
+    :ets.insert(table, {{time, _dup_number = 0, key}, value})
+  end
+
+  defp store_value(table, time, key, value, dup_number \\ 0) do
+    unless is_integer(time),
+      do: raise("Timestamp must be an integer (that represents a unix timestamp)")
+
+    if :ets.insert_new(table, {{time, dup_number, key}, value}) do
+      :ok
+    else
+      store_value(table, time, key, value, dup_number + 1)
+    end
   end
 
   def lookup(key, opts \\ []) do
-    table_name = Keyword.get(opts, :table, @table_name)
+    table = Keyword.get(opts, :table, @table_name)
 
-    :ets.lookup(table_name, key)
-    |> Enum.map(fn {_, _, val} -> val end)
-    |> case do
-      [] -> nil
-      val -> val
+    Matcha.Table.ETS.select table, :reverse do
+      {{_time, _dup_number, the_key}, value} when key == the_key -> value
     end
   end
 
-  def clear(opts \\ []) do
-    tracer = Keyword.get(opts, :tracer, __MODULE__)
-
-    GenServer.call(tracer, :clear)
+  def clear(name_or_pid \\ __MODULE__, _opts \\ []) do
+    GenServer.call(name_or_pid, :clear)
   end
 
   @impl GenServer
-  def handle_call({:store_key, key, timestamp, value}, _from, state) do
-    %State{table: table} = state
-
-    if key do
-      Logger.warn("Storing #{inspect(key)}:#{inspect(timestamp)} => #{inspect(value, pretty: true)}")
-    else
-      Logger.warn("Storing #{inspect(timestamp)} => #{inspect(value, pretty: true)}")
-    end
-
-    :ets.insert(table, {key, timestamp, value})
-    {:reply, :ok, state}
-  end
-
   def handle_call(:clear, _from, state) do
     %State{table_name: table_name} = state
     :ets.delete(table_name)
@@ -96,6 +106,6 @@ defmodule DataTracer.Server do
   end
 
   defp new(table_name) do
-    :ets.new(table_name, [:duplicate_bag, :protected, :named_table])
+    :ets.new(table_name, [:ordered_set, :public, :named_table])
   end
 end
