@@ -1,6 +1,7 @@
 defmodule DataTracer.Server do
   use GenServer
   require Logger
+  require Matcha.Table.ETS
 
   @moduledoc """
   Reads and writes the traced data to ETS
@@ -31,26 +32,29 @@ defmodule DataTracer.Server do
   end
 
   def all(opts \\ []) do
-    table_name = Keyword.get(opts, :table, @table_name)
+    table = Keyword.get(opts, :table, @table_name)
 
-    :ets.match(table_name, {:"$1", :"$2", :"$3"})
-    |> Enum.sort(fn [_, a, _], [_, b, _] ->
-      case NaiveDateTime.compare(a, b) do
-        :lt -> false
-        :eq -> true
-        :gt -> true
-      end
-    end)
+    Matcha.Table.ETS.select table, :reverse do
+      {{time, _dup_number, key}, value} -> {time, key, value}
+    end
   end
 
   def last(opts \\ []) do
-    [_key, _timestamp, value] = all(opts) |> List.first()
-    value
+    table = Keyword.get(opts, :table, @table_name)
+
+    case :ets.last(table) do
+      :"$end_of_table" ->
+        :data_tracer_table_is_empty
+
+      key ->
+        [{{_time, _dup_number, _key}, value}] = :ets.lookup(table, key)
+        value
+    end
   end
 
   def store(value, opts \\ []) do
     key = Keyword.get(opts, :key)
-    time = Keyword.get(opts, :time, NaiveDateTime.utc_now())
+    time = Keyword.get(opts, :time, :os.system_time(:millisecond))
     table = Keyword.get(opts, :table, @table_name)
 
     if key do
@@ -59,18 +63,22 @@ defmodule DataTracer.Server do
       Logger.warn("Storing #{inspect(time)} => #{inspect(value, pretty: true)}")
     end
 
-    :ets.insert(table, {key, time, value})
-    :ok
+    store_value(table, time, key, value)
+  end
+
+  defp store_value(table, time, key, value, dup_number \\ 0) do
+    if :ets.insert_new(table, {{time, dup_number, key}, value}) do
+      :ok
+    else
+      store_value(table, time, key, value, dup_number + 1)
+    end
   end
 
   def lookup(key, opts \\ []) do
     table = Keyword.get(opts, :table, @table_name)
 
-    :ets.lookup(table, key)
-    |> Enum.map(fn {_, _, val} -> val end)
-    |> case do
-      [] -> nil
-      val -> val
+    Matcha.Table.ETS.select table, :reverse do
+      {{_time, _dup_number, the_key}, value} when key == the_key -> value
     end
   end
 
@@ -87,6 +95,6 @@ defmodule DataTracer.Server do
   end
 
   defp new(table_name) do
-    :ets.new(table_name, [:duplicate_bag, :public, :named_table])
+    :ets.new(table_name, [:ordered_set, :public, :named_table])
   end
 end

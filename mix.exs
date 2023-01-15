@@ -22,6 +22,8 @@ defmodule DataTracer.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      # {:matcha, "~> 0.1"},
+      {:matcha, path: "~/dev/forks/matcha"},
       {:ex_doc, "~> 0.21", only: :docs}
     ]
   end

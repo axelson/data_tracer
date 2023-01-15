@@ -16,5 +16,7 @@ end
 ```
 
 TODO:
-- [ ] Don't unnecessarily send logs through the server (since we're using ETS we can write directly)
-- [ ] Allow storing only new values (or only values that differ from the latest value)
+- [x] Don't unnecessarily send logs through the server (since we're using ETS we can write directly)
+- [ ] Maybe allow storing only new values (or only values that differ from the latest value)
+- [x] Try matcha instead of manual sorting
+- [x] Don't fetch all values when using `last/1`

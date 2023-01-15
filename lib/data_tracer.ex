@@ -47,6 +47,11 @@ defmodule DataTracer do
   @doc """
   Retrieve all values that have been stored under the key in the DataTracer
 
+  Returns the values in desc order by timestamp. This means that the first value
+  returned is the last value that was stored for the given key.
+
+  Use `nil` as the key to retrieve values that were stored without a specific key.
+
   Options:
   * #{@table_doc}
   """
