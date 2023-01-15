@@ -66,7 +66,18 @@ defmodule DataTracer.Server do
     store_value(table, time, key, value)
   end
 
+  def store_uniq(value, opts \\ []) do
+    key = Keyword.get(opts, :key)
+    time = Keyword.get(opts, :time)
+    table = Keyword.get(opts, :table)
+
+    :ets.insert(table, {{time, _dup_number = 0, key}, value})
+  end
+
   defp store_value(table, time, key, value, dup_number \\ 0) do
+    unless is_integer(time),
+      do: raise("Timestamp must be an integer (that represents a unix timestamp)")
+
     if :ets.insert_new(table, {{time, dup_number, key}, value}) do
       :ok
     else
