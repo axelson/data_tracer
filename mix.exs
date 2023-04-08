@@ -25,8 +25,10 @@ defmodule DataTracer.MixProject do
       # {:matcha, "~> 0.1"},
       # {:matcha, path: "~/dev/forks/matcha"},
       # https://github.com/christhekeele/matcha/pull/47
-      {:matcha, github: "axelson/matcha", branch: "more-select-operations"},
-      {:ex_doc, "~> 0.21", only: :docs}
+      # {:matcha, github: "axelson/matcha", branch: "more-select-operations"},
+      {:matcha, github: "christhekeele/matcha", branch: "latest"},
+      {:ex_doc, "~> 0.21", only: :docs},
+      {:dialyxir, ">= 0.0.0", only: [:dev], runtime: false}
     ]
   end
 end
