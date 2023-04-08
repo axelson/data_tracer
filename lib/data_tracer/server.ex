@@ -72,6 +72,7 @@ defmodule DataTracer.Server do
     table = Keyword.get(opts, :table, @table_name)
 
     :ets.insert(table, {{time, _dup_number = 0, key}, value})
+    value
   end
 
   defp store_value(table, time, key, value, dup_number \\ 0) do
@@ -79,7 +80,7 @@ defmodule DataTracer.Server do
       do: raise("Timestamp must be an integer (that represents a unix timestamp)")
 
     if :ets.insert_new(table, {{time, dup_number, key}, value}) do
-      :ok
+      value
     else
       store_value(table, time, key, value, dup_number + 1)
     end

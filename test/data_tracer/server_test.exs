@@ -24,7 +24,7 @@ defmodule DataTracer.ServerTest do
   end
 
   test "store a value by key and look it up", %{table: table} do
-    DataTracer.store("42", key: "the_answer", table: table)
+    assert DataTracer.store("42", key: "the_answer", table: table) == "42"
 
     assert DataTracer.lookup("the_answer", table: table) == ["42"]
   end
