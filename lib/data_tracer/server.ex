@@ -69,7 +69,7 @@ defmodule DataTracer.Server do
   def store_uniq(value, opts \\ []) do
     key = Keyword.get(opts, :key)
     time = Keyword.get(opts, :time)
-    table = Keyword.get(opts, :table)
+    table = Keyword.get(opts, :table, @table_name)
 
     :ets.insert(table, {{time, _dup_number = 0, key}, value})
   end

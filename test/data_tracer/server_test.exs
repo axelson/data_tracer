@@ -29,6 +29,13 @@ defmodule DataTracer.ServerTest do
     assert DataTracer.lookup("the_answer", table: table) == ["42"]
   end
 
+  test "store_uniq/1 stores a single value" do
+    assert DataTracer.store_uniq("first") == "first"
+    assert DataTracer.store_uniq("second") == "second"
+
+    assert [{nil, nil, "second"}] = DataTracer.all()
+  end
+
   test "store_uniq can store one value", %{table: table} do
     DataTracer.store_uniq("a", table: table)
 
