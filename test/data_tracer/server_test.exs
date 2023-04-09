@@ -1,5 +1,6 @@
 defmodule DataTracer.ServerTest do
   use ExUnit.Case, async: true
+  use Machete
 
   setup do
     table_name = :data_tracer_test
@@ -33,7 +34,7 @@ defmodule DataTracer.ServerTest do
     assert DataTracer.store_uniq("first") == "first"
     assert DataTracer.store_uniq("second") == "second"
 
-    assert [{nil, nil, "second"}] = DataTracer.all()
+    assert DataTracer.all() ~> [{unix_time(roughly: :now), nil, "second"}]
   end
 
   test "store_uniq can store one value", %{table: table} do
@@ -49,6 +50,13 @@ defmodule DataTracer.ServerTest do
 
     assert DataTracer.lookup("the_answer", table: table) == ["c"]
     assert [{_, _dup_key, "c"}] = DataTracer.all(table: table)
+  end
+
+  test "store_uniq uses the current time", %{table: table} do
+    DataTracer.store_uniq("uniq", table: table)
+
+    key = nil
+    assert DataTracer.all(table: table) ~> [{unix_time(roughly: :now), key, "uniq"}]
   end
 
   test "lookup multiple values under the same key", %{table: table} do

@@ -26,13 +26,13 @@ defmodule DataTracer.Server do
   @impl GenServer
   def init(opts) do
     Logger.debug("DataTracer starting!")
-    table_name = Keyword.get(opts, :table, @table_name)
+    table_name = get_table(opts)
     table = new(table_name)
     {:ok, %State{table_name: table_name, table: table}}
   end
 
   def all(opts \\ []) do
-    table = Keyword.get(opts, :table, @table_name)
+    table = get_table(opts)
 
     Matcha.Table.ETS.select table, :reverse do
       {{time, _dup_number, key}, value} -> {time, key, value}
@@ -40,7 +40,7 @@ defmodule DataTracer.Server do
   end
 
   def last(opts \\ []) do
-    table = Keyword.get(opts, :table, @table_name)
+    table = get_table(opts)
 
     case :ets.last(table) do
       :"$end_of_table" ->
@@ -53,9 +53,9 @@ defmodule DataTracer.Server do
   end
 
   def store(value, opts \\ []) do
-    key = Keyword.get(opts, :key)
-    time = Keyword.get(opts, :time, :os.system_time(:millisecond))
-    table = Keyword.get(opts, :table, @table_name)
+    key = get_key(opts)
+    time = get_time(opts)
+    table = get_table(opts)
 
     if key do
       Logger.warn("Storing #{inspect(key)}:#{inspect(time)} => #{inspect(value, pretty: true)}")
@@ -67,9 +67,9 @@ defmodule DataTracer.Server do
   end
 
   def store_uniq(value, opts \\ []) do
-    key = Keyword.get(opts, :key)
-    time = Keyword.get(opts, :time)
-    table = Keyword.get(opts, :table, @table_name)
+    key = get_key(opts)
+    time = get_time(opts)
+    table = get_table(opts)
 
     :ets.insert(table, {{time, _dup_number = 0, key}, value})
     value
@@ -87,7 +87,7 @@ defmodule DataTracer.Server do
   end
 
   def lookup(key, opts \\ []) do
-    table = Keyword.get(opts, :table, @table_name)
+    table = get_table(opts)
 
     Matcha.Table.ETS.select table, :reverse do
       {{_time, _dup_number, the_key}, value} when key == the_key -> value
@@ -109,4 +109,10 @@ defmodule DataTracer.Server do
   defp new(table_name) do
     :ets.new(table_name, [:ordered_set, :public, :named_table])
   end
+
+  defp get_time(opts) when is_list(opts),
+    do: Keyword.get(opts, :time, :os.system_time(:millisecond))
+
+  defp get_table(opts) when is_list(opts), do: Keyword.get(opts, :table, @table_name)
+  defp get_key(opts) when is_list(opts), do: Keyword.get(opts, :key, nil)
 end
