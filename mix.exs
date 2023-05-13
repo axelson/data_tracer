@@ -5,9 +5,12 @@ defmodule DataTracer.MixProject do
     [
       app: :data_tracer,
       version: "0.1.0",
+      description: description(),
       elixir: "~> 1.7",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      source_url: "https://github.com/axelson/data_tracer",
+      homepage_url: "https://github.com/axelson/data_tracer"
     ]
   end
 
@@ -16,6 +19,26 @@ defmodule DataTracer.MixProject do
     [
       mod: {DataTracer.Application, []},
       extra_applications: [:logger]
+    ]
+  end
+
+  def description do
+    """
+    Elixir debug tool to facilitate inspection of data flow by capturing terms
+    for inspection in IEx.
+    """
+  end
+
+  def package do
+    [
+      name: :data_tracer,
+      files: ["lib", "mix.exs", "README*", "LICENSE*"],
+      maintainers: ["Jason Axelson"],
+      licenses: ["Apache-2.0"],
+      links: %{
+        "GitHub" => "https://github.com/axelson/data_tracer",
+        "ChangeLog" => "https://github.com/axelson/data_tracer/blob/main/Changelog.md"
+      }
     ]
   end
 
