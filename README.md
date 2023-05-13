@@ -1,15 +1,23 @@
 # DataTracer
 
-Elixir debug tool to facilitate inspection of data flow by capturing terms for inspection in IEx
+Elixir debug tool to facilitate inspection of data flow by capturing terms for
+inspection in IEx
+
+The primary intended usecase for DataTracer is to capture Elixir
+terms—especially terms that are not printable or span many lines—and bringing
+them into your IEx REPL. And yes, DataTracer is effectively global variables for
+Elixir.
 
 **Warning** Not intended for use in production, may cause runaway memory use!
 
-Why create DataTracer? When writing code I find it much easier to work with
-real data and quickly iterate in a REPL. But quite often the bit of data that
-I'm interested in is "far" away from the command I run in IEx or could even only
-be accessible from within the context of a Phoenix request. However, these are
-all happening within the same BEAM instance so we just need a bit of plumbing to
-expose those values in a usable way.
+## Why create this?
+
+I've found that when writing code I find it much easier to work with real data
+and then quickly iterate in a REPL. But quite often the bit of data that I'm
+interested in is "far" away from the command I run in IEx or could even only be
+accessible from within the context of a Phoenix request. However, since
+everything is happening within the same BEAM instance with a bit of plumbing
+(enter DataTracer!) we can expose those values in a usable way.
 
 DataTracer also helps with cases where code that you inspect is either too long
 (or you forgot to include `limit: :infinity` when calling `IO.inspect`) or
@@ -37,7 +45,7 @@ For general usage of DataTracer I recommend starting your application with
 `iex -S mix` (or `iex -S mix phx.server` for a Phoenix application)
 
 ``` elixir
-# Somewhere in your code
+# Somewhere in your code (such as a Phoenix Controller or LiveView)
 DataTracer.store("earlier-value", key: "my-term")
 DataTracer.store("some-value", key: "my-term")
 
@@ -81,4 +89,6 @@ table in ETS.
 Insertion happens via a GenServer (`DataTracer.Server`) to ensure that race
 conditions are handled.
 
-Note: I've spent some effort to make DataTracer fast at lookups while not compromising storage speed but I haven't done any benhcmarks and there's likely lots of room for improvement.
+Note: I've spent some effort to make DataTracer fast at lookups while not
+compromising storage speed but I haven't done any benhcmarks and there's likely
+lots of room for improvement.
