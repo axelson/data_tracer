@@ -22,15 +22,12 @@ defmodule DataTracer.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      # {:machete, "~> 0.2.6", only: :test},
-      # Waiting for https://github.com/mtrudel/machete/pull/6
-      {:machete, github: "axelson/machete", branch: "add-unix-time-matcher", only: :test},
+      {:machete, "~> 0.2.6", only: :test},
       # {:machete, path: "~/dev/forks/machete", only: :test},
       # {:matcha, "~> 0.1"},
-      # {:matcha, path: "~/dev/forks/matcha"},
-      # https://github.com/christhekeele/matcha/pull/47
-      # {:matcha, github: "axelson/matcha", branch: "more-select-operations"},
+      # Waiting for https://github.com/christhekeele/matcha/pull/47
       {:matcha, github: "christhekeele/matcha", branch: "latest"},
+      # {:matcha, path: "~/dev/forks/matcha"},
       {:ex_doc, "~> 0.21", only: :docs},
       {:dialyxir, ">= 0.0.0", only: [:dev], runtime: false}
     ]
