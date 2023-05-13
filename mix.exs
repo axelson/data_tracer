@@ -1,6 +1,8 @@
 defmodule DataTracer.MixProject do
   use Mix.Project
 
+  @use_local_deps System.get_env("USE_LOCAL_DEPS") == "1" && File.exists?("local_deps.exs")
+
   def project do
     [
       app: :data_tracer,
@@ -9,6 +11,7 @@ defmodule DataTracer.MixProject do
       elixir: "~> 1.7",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      lockfile: if(@use_local_deps, do: "mix_local.lock", else: "mix.lock"),
       source_url: "https://github.com/axelson/data_tracer",
       homepage_url: "https://github.com/axelson/data_tracer"
     ]
@@ -54,5 +57,15 @@ defmodule DataTracer.MixProject do
       {:ex_doc, "~> 0.21", only: :docs},
       {:dialyxir, ">= 0.0.0", only: [:dev], runtime: false}
     ]
+    |> Enum.concat(local_deps())
+  end
+
+  if @use_local_deps do
+    defp local_deps do
+      Code.require_file("local_deps.exs")
+      DataTracer.LocalDeps.local_deps()
+    end
+  else
+    defp local_deps, do: []
   end
 end
