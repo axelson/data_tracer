@@ -9,6 +9,7 @@ defmodule DataTracer.MixProject do
       elixir: "~> 1.7",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      package: package(),
       source_url: "https://github.com/axelson/data_tracer",
       homepage_url: "https://github.com/axelson/data_tracer"
     ]
