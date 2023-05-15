@@ -47,9 +47,7 @@ defmodule DataTracer.MixProject do
     [
       {:machete, "~> 0.2.6", only: :test},
       # {:machete, path: "~/dev/forks/machete", only: :test},
-      # {:matcha, "~> 0.1"},
-      # Waiting for https://github.com/christhekeele/matcha/pull/47
-      {:matcha, github: "christhekeele/matcha", branch: "latest"},
+      {:matcha, "~> 0.1"},
       # {:matcha, path: "~/dev/forks/matcha"},
       {:ex_doc, "~> 0.21", only: :docs},
       {:dialyxir, ">= 0.0.0", only: [:dev], runtime: false}
