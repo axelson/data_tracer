@@ -58,9 +58,9 @@ defmodule DataTracer.Server do
     table = get_table(opts)
 
     if key do
-      Logger.warn("Storing #{inspect(key)}:#{inspect(time)} => #{inspect(value, pretty: true)}")
+      Logger.warning("Storing #{inspect(key)}:#{inspect(time)} => #{inspect(value, pretty: true)}")
     else
-      Logger.warn("Storing #{inspect(time)} => #{inspect(value, pretty: true)}")
+      Logger.warning("Storing #{inspect(time)} => #{inspect(value, pretty: true)}")
     end
 
     store_value(table, time, key, value)

@@ -8,7 +8,7 @@ defmodule DataTracer.MixProject do
       app: :data_tracer,
       version: @version,
       description: description(),
-      elixir: "~> 1.7",
+      elixir: "~> 1.11",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       package: package(),
