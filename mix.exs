@@ -56,7 +56,7 @@ defmodule DataTracer.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:machete, "~> 0.2.6", only: :test},
+      {:machete, "~> 0.3.0", only: :test},
       # {:machete, path: "~/dev/forks/machete", only: :test},
       {:matcha, "~> 0.1"},
       # {:matcha, path: "~/dev/forks/matcha"},
