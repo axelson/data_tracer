@@ -89,9 +89,11 @@ defmodule DataTracer.Server do
   def lookup(key, opts \\ []) do
     table = get_table(opts)
 
-    Matcha.Table.ETS.select table, :reverse do
-      {{_time, _dup_number, the_key}, value} when key == the_key -> value
-    end
+    match_spec = [
+      {{{:_, :_, :"$3"}, :"$4"}, [{:==, :"$3", key}], [:"$4"]}
+    ]
+
+    :ets.select_reverse(table, match_spec)
   end
 
   def clear(name_or_pid \\ __MODULE__, _opts \\ []) do
