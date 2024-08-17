@@ -1,13 +1,12 @@
 defmodule DataTracer.Server do
-  use GenServer
-  require Logger
-  require Matcha.Table.ETS
-
   @moduledoc """
   Reads and writes the traced data to ETS
 
   Data format `{key, timestamp, value}`
   """
+
+  use GenServer
+  require Logger
 
   @table_name :data_tracer
 
@@ -33,10 +32,9 @@ defmodule DataTracer.Server do
 
   def all(opts \\ []) do
     table = get_table(opts)
-
-    Matcha.Table.ETS.select table, :reverse do
-      {{time, _dup_number, key}, value} -> {time, key, value}
-    end
+    # {{time, _dup_number, key}, value} -> {time, key, value}
+    match_spec = [{{{:"$1", :_, :"$2"}, :"$3"}, [], [{{:"$1", :"$2", :"$3"}}]}]
+    :ets.select_reverse(table, match_spec)
   end
 
   def last(opts \\ []) do
@@ -58,7 +56,9 @@ defmodule DataTracer.Server do
     table = get_table(opts)
 
     if key do
-      Logger.warning("Storing #{inspect(key)}:#{inspect(time)} => #{inspect(value, pretty: true)}")
+      Logger.warning(
+        "Storing #{inspect(key)}:#{inspect(time)} => #{inspect(value, pretty: true)}"
+      )
     else
       Logger.warning("Storing #{inspect(time)} => #{inspect(value, pretty: true)}")
     end
@@ -89,9 +89,12 @@ defmodule DataTracer.Server do
   def lookup(key, opts \\ []) do
     table = get_table(opts)
 
-    Matcha.Table.ETS.select table, :reverse do
-      {{_time, _dup_number, the_key}, value} when key == the_key -> value
-    end
+    # {{_time, _dup_number, the_key}, value} when key == the_key -> value
+    match_spec = [
+      {{{:_, :_, :"$3"}, :"$4"}, [{:==, :"$3", key}], [:"$4"]}
+    ]
+
+    :ets.select_reverse(table, match_spec)
   end
 
   def clear(name_or_pid \\ __MODULE__, _opts \\ []) do
