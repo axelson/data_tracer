@@ -82,6 +82,7 @@ defmodule DataTracer do
   see `clear/1` for details
   """
   defdelegate clear, to: DataTracer.Server
+
   @doc """
   Clear the DataTracer
 

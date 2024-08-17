@@ -1,11 +1,14 @@
 # DataTracer
 
-Elixir debug tool to facilitate inspection of data flow by capturing terms for inspection in IEx.
+Elixir debug tool to facilitate inspection of data flow by capturing terms for
+inspection in IEx.
 
 The primary intended usecase for DataTracer is to capture Elixir
 terms—especially terms that are not printable or span many lines—and bringing
 them into your IEx REPL. And yes, DataTracer is effectively global variables for
 Elixir.
+
+DataTracer doesn't have any dependencies.
 
 **Warning** Not intended for use in production, may cause runaway memory use!
 
@@ -27,17 +30,19 @@ invalid bits which is time consuming and error prone.
 
 ## Installation
 
-`DataTracer` is [available in Hex](https://hex.pm/packages/password_validator),
-the package can be installed by adding `data_tracer` to your list of
+`DataTracer` can be installed by adding `data_tracer` to your list of
 dependencies in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:data_tracer, "~> 0.1"},
+    {:data_tracer, "~> 0.1", only: [:dev]},
   ]
 end
 ```
+
+I recommend `only: [:dev]` because DataTracer is not intended for use in
+production.
 
 ## Usage
 
