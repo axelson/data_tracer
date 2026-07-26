@@ -66,6 +66,14 @@ defmodule DataTracer.ServerTest do
     assert DataTracer.lookup("age", table: table) == ["101", "100"]
   end
 
+  test "lookup retrieves values from the key", %{table: table} do
+    DataTracer.store("100", key: "age", table: table)
+    DataTracer.store("160", key: "weight", table: table)
+
+    assert DataTracer.lookup("age", table: table) == ["100"]
+    assert DataTracer.lookup("weight", table: table) == ["160"]
+  end
+
   test "retrieves values based on timestamp", %{table: table} do
     t1 = 1_673_805_804_091
     t2 = t1 + 1
