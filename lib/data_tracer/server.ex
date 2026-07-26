@@ -102,7 +102,7 @@ defmodule DataTracer.Server do
   end
 
   @impl GenServer
-  def handle_call(:clear, _from, state) do
+  def handle_call(:clear, _from, %State{} = state) do
     %State{table_name: table_name} = state
     :ets.delete(table_name)
     table = new(table_name)
