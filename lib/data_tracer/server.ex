@@ -11,6 +11,7 @@ defmodule DataTracer.Server do
   @table_name :data_tracer
 
   defmodule State do
+    @moduledoc false
     defstruct [:table_name, :table]
   end
 

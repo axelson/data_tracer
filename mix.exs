@@ -11,6 +11,7 @@ defmodule DataTracer.MixProject do
       elixir: "~> 1.11",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      aliases: aliases(),
       package: package(),
       docs: docs(),
       source_url: "https://github.com/axelson/data_tracer",
@@ -18,7 +19,10 @@ defmodule DataTracer.MixProject do
     ]
   end
 
-  # Run "mix help compile.app" to learn about applications.
+  def cli do
+    [preferred_envs: [precommit: :test, check: :test]]
+  end
+
   def application do
     [
       mod: {DataTracer.Application, []},
@@ -59,7 +63,28 @@ defmodule DataTracer.MixProject do
       {:machete, "~> 0.3.0", only: :test},
       # {:machete, path: "~/dev/forks/machete", only: :test},
       {:ex_doc, "~> 0.21", only: :docs},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, ">= 0.0.0", only: [:dev], runtime: false}
+    ]
+  end
+
+  defp aliases do
+    [
+      precommit: [
+        "compile --warnings-as-errors",
+        "deps.unlock --unused",
+        "format --check-formatted",
+        "credo",
+        "test"
+      ],
+      check: [
+        "compile --warnings-as-errors",
+        "deps.unlock --unused",
+        "format --check-formatted",
+        "credo",
+        "test",
+        "cmd env MIX_ENV=dev mix dialyzer"
+      ]
     ]
   end
 end

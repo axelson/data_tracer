@@ -1,4 +1,6 @@
 defmodule DataTracer.SupervisorUtils do
+  @moduledoc false
+
   @doc """
   Get the restart settings for a supervisor
 
@@ -64,8 +66,9 @@ defmodule DataTracer.SupervisorUtils do
   `max_seconds` is ignored)
   """
   def max_crashes(application, pid) do
-    with {:ok, supervisors} <- find_supervisors(application, pid),
-         restart_settings = Enum.map(supervisors, &restart_settings/1) do
+    with {:ok, supervisors} <- find_supervisors(application, pid) do
+      restart_settings = Enum.map(supervisors, &restart_settings/1)
+
       Enum.reduce(restart_settings, 1, fn restart_settings, acc ->
         num_crashes = restart_settings.max_restarts + 1
         acc * num_crashes
